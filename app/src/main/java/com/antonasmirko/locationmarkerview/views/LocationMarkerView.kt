@@ -96,10 +96,10 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
             it[4] = mData[2]
             it[5] = mData[3] - mDifference
 
-            it[6] = mData[4] + mDifference - 100f
+            it[6] = mData[4] + mDifference - 50f
             it[7] = mData[5]
 
-            it[8] = mData[4] - mDifference + 100f
+            it[8] = mData[4] - mDifference + 50f
             it[9] = mData[5]
 
             it[10] = mData[6]
@@ -127,12 +127,12 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
         canvas?.scale(1f, -1f)
 
         mPath.apply {
-            moveTo(mData[0], mData[1])
-            cubicTo(mCtrl[0], mCtrl[1], mCtrl[2], mCtrl[3], mData[2], mData[3])
+            moveTo(mData[2], mData[3])
+            //cubicTo(mCtrl[0], mCtrl[1], mCtrl[2], mCtrl[3], mData[2], mData[3])
             cubicTo(mCtrl[4], mCtrl[5], mCtrl[6], mCtrl[7], mData[4], mData[5])
             cubicTo(mCtrl[8], mCtrl[9], mCtrl[10], mCtrl[11], mData[6], mData[7])
-            cubicTo(mCtrl[12], mCtrl[13], mCtrl[14], mCtrl[15], mData[0], mData[1])
-            moveTo(mData[0], mData[1])
+            //cubicTo(mCtrl[12], mCtrl[13], mCtrl[14], mCtrl[15], mData[0], mData[1])
+            //moveTo(mData[0], mData[1])
             lineTo(mData[6] - mCircleRadius, mData[7])
             arcTo(
                 RectF(
