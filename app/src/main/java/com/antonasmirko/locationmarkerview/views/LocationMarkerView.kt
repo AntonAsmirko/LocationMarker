@@ -14,40 +14,46 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
     }
 
     private val mPaint = Paint().apply {
-        color = Color.RED
+        color = Color.BLACK
         strokeWidth = 4f
         style = Paint.Style.STROKE
         textSize = 60f
     }
-    private val mPath = Path()
+    private val mPaintFill = Paint().apply {
+        color = Color.TRANSPARENT
+        strokeWidth = 4f
+        alpha = 0
+        style = Paint.Style.FILL
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_OUT)
+        isAntiAlias = true;
+        textSize = 60f
+    }
+    val mPath = Path()
 
-    private var mCenterX = 0f
-    private var mCenterY = 0f
+    var mCenterX = 0f
+    var mCenterY = 0f
 
-    private val pointF = PointF(0f, 0f)
-    private val mInitCircleRadius = 70f
+    val mInitCircleRadius = 70f
 
-    private val mDurationFirstTransition = 1400f
+    val mDurationFirstTransition = 1400f
     private var mCurrentFirstTransition = 0f
-    private var mCountFirstTransition = 100f
+    var mCountFirstTransition = 100f
 
     private var startFirstTransition = 0f
-    private val stepFirstTransition = 5f
+    val stepFirstTransition = 5f
 
-    private val mDurationSecondTransition = 2000f
+    val mDurationSecondTransition = 2000f
     private var mCurrentSecondTransition = 0f
-    private var mCountSecondTransition = 100f
+    var mCountSecondTransition = 100f
 
     private var startSecondTransition = 1f
-    private val stepSecondTransition = 0.1f
+    val stepSecondTransition = 0.1f
 
     private var startFourthTransition = 0f
-    private val stepFourthTransition = 270f / (mDurationSecondTransition / mCountSecondTransition)
+    val stepFourthTransition = 270f / (mDurationSecondTransition / mCountSecondTransition)
 
-    private val mDataConst = makeMDataFirstOrSecond(width / 2f, height / 2f, mInitCircleRadius)
-    private val mCtrlConst = makeMCtrlFirstToSecond(mDataConst, mDifference(mInitCircleRadius))
-    private val mData = makeMDataFirstOrSecond(width / 2f, height / 2f, mInitCircleRadius)
-    private val mCtrl = makeMCtrlFirstToSecond(mData, mDifference(mInitCircleRadius))
+    val mData = makeMDataFirstOrSecond(width / 2f, height / 2f, mInitCircleRadius)
+    val mCtrl = makeMCtrlFirstToSecond(mData, mDifference(mInitCircleRadius))
 
     private fun mDifference(mCircleRadius: Float) = mCircleRadius * C
 
@@ -108,7 +114,6 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-
         canvas?.translate(mCenterX, mCenterY)
         canvas?.scale(1f, -1f)
 
@@ -122,7 +127,17 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
                 mCtrl,
                 mInitCircleRadius,
                 startFirstTransition,
-                mPath
+                mPath,
+                mPaintFill
+            )
+            drawFirstOrSecond(
+                canvas,
+                mData,
+                mCtrl,
+                mInitCircleRadius,
+                startFirstTransition,
+                mPath,
+                mPaint
             )
             startFirstTransition += stepFirstTransition
             postInvalidateDelayed(15L)
@@ -139,13 +154,25 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
                 0.333333f,
                 startSecondTransition,
                 startFourthTransition,
-                mPath
+                mPath,
+                mPaintFill
+            )
+            drawFourthForm(
+                canvas,
+                mData,
+                mCtrl,
+                mInitCircleRadius,
+                0.333333f,
+                startSecondTransition,
+                startFourthTransition,
+                mPath,
+                mPaint
             )
             startFourthTransition += stepFourthTransition
             startSecondTransition += stepSecondTransition
             postInvalidateDelayed(15L)
         }
-        if (mCurrentFirstTransition > mDurationFirstTransition && mCurrentSecondTransition > mDurationSecondTransition)
+        if (mCurrentFirstTransition > mDurationFirstTransition && mCurrentSecondTransition > mDurationSecondTransition) {
             drawFourthForm(
                 canvas!!,
                 mData,
@@ -154,8 +181,21 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
                 0.333333f,
                 startSecondTransition,
                 startFourthTransition,
-                mPath
+                mPath,
+                mPaintFill
             )
+            drawFourthForm(
+                canvas!!,
+                mData,
+                mCtrl,
+                mInitCircleRadius,
+                0.333333f,
+                startSecondTransition,
+                startFourthTransition,
+                mPath,
+                mPaint
+            )
+        }
     }
 
     private fun drawFirstOrSecond(
@@ -165,6 +205,7 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
         mCircleRadius: Float,
         mStretchVal: Float,
         mPath: Path,
+        mPaint: Paint
     ) {
         canvas.drawPath(mPath.apply {
             moveTo(mData[0], mData[1])
@@ -201,7 +242,8 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
         angleSmoothnessRatio: Float,
         upHeight: Float,
         upWidth: Float,
-        mPath: Path
+        mPath: Path,
+        mPaint: Paint
     ) {
         canvas.drawPath(mPath.apply {
             moveTo(mData[2], mData[3])
