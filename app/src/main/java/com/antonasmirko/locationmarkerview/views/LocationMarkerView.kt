@@ -14,7 +14,7 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
     }
 
     private val mPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.RED
         strokeWidth = 8f
         style = Paint.Style.FILL
         textSize = 60f
@@ -25,7 +25,7 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
     private var mCenterY = 0f
 
     private val pointF = PointF(0f, 0f)
-    private val mInitCircleRadius = 200f
+    private val mInitCircleRadius = 100f
 
     private val mDurationFirstTransition = 5000f
     private var mCurrentFirstTransition = 0f
@@ -34,11 +34,15 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
     private var startFirstTransition = 1f
     private val stepFirstTransition = 0.02f
 
-    private val mDurationSecondTransition = 6000f
+    private val mDurationSecondTransition = 2000f
     private var mCurrentSecondTransition = 0f
     private var mCountSecondTransition = 100f
 
-    private val stepSecondTransition = 10f
+    private var startSecondTransition = 1f
+    private val stepSecondTransition = 0.2f
+
+    private var startFourthTransition = 0f
+    private val stepFourthTransition = 300f / (mDurationSecondTransition / mCountSecondTransition)
 
     private val mDataConst = makeMDataFirstOrSecond(0f, 0f, mInitCircleRadius)
     private val mCtrlConst = makeMCtrlFirstToSecond(mDataConst, mDifference(mInitCircleRadius))
@@ -177,17 +181,33 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
             postInvalidateDelayed(15L)
         }
 
-        if (mCurrentFirstTransition > mDurationFirstTransition) drawThirdForm(
-            canvas!!,
-            mData,
-            mCtrl,
-            mInitCircleRadius,
-            0.333333f,
-            3f,
-            mPath
-        )
-
-
+        if (mCurrentFirstTransition > mDurationFirstTransition && mCurrentSecondTransition <= mDurationSecondTransition) {
+            mCurrentSecondTransition += mCountSecondTransition
+            drawFourthForm(
+                canvas!!,
+                mData,
+                mCtrl,
+                mInitCircleRadius,
+                0.333333f,
+                startSecondTransition,
+                startFourthTransition,
+                mPath
+            )
+            startFourthTransition += stepFourthTransition
+            startSecondTransition += stepSecondTransition
+            postInvalidateDelayed(15L)
+        }
+        if (mCurrentFirstTransition > mDurationFirstTransition && mCurrentSecondTransition > mDurationSecondTransition)
+            drawFourthForm(
+                canvas!!,
+                mData,
+                mCtrl,
+                mInitCircleRadius,
+                0.333333f,
+                startSecondTransition,
+                startFourthTransition,
+                mPath
+            )
     }
 
     private fun drawFirstOrSecond(
@@ -218,7 +238,10 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
             moveTo(mData[2], mData[3])
             cubicTo(mCtrl[4], mCtrl[5], mCtrl[6], mCtrl[7], mData[4], mData[5])
             cubicTo(mCtrl[8], mCtrl[9], mCtrl[10], mCtrl[11], mData[6], mData[7])
-            lineTo(mData[6], mData[7] + mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio)
+            lineTo(
+                mData[6],
+                mData[7] + mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio
+            )
             arcTo(
                 mData[6],
                 mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio * 2f,
@@ -249,60 +272,62 @@ class LocationMarkerView(context: Context, attributeSet: AttributeSet?) :
         mData: Array<Float>,
         mCtrl: Array<Float>,
         mCircleRadius: Float,
+        angleSmoothnessRatio: Float,
+        upHeight: Float,
+        upWidth: Float,
         mPath: Path
     ) {
-        val BALANCE_CONST_HEIGHT = 0.285714f
-        val BALANCE_CONST_WIDTH = 0.153848f
         canvas.drawPath(mPath.apply {
             moveTo(mData[2], mData[3])
             cubicTo(mCtrl[4], mCtrl[5], mCtrl[6], mCtrl[7], mData[4], mData[5])
             cubicTo(mCtrl[8], mCtrl[9], mCtrl[10], mCtrl[11], mData[6], mData[7])
-            lineTo(mData[6] - mCircleRadius, mData[7])
+            lineTo(mData[6] - upWidth + mCircleRadius * angleSmoothnessRatio, mData[7])
             arcTo(
-                RectF(
-                    mData[6] - mCircleRadius - 50f,
-                    mData[7],
-                    mData[6] - mCircleRadius + 50f,
-                    mData[7] + 100f
-                ), 270f, -90f
+                mData[6] - upWidth,
+                mData[7],
+                mData[6] - upWidth + mCircleRadius * angleSmoothnessRatio * 2f,
+                mData[7] + mCircleRadius * angleSmoothnessRatio * 2f,
+                -90f,
+                -90f,
+                false
             )
             lineTo(
-                mData[6] - mCircleRadius - 50f,
-                mData[7] + 50f + mCircleRadius / BALANCE_CONST_HEIGHT
+                mData[6] - upWidth,
+                mData[7] + mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio
             )
             arcTo(
-                RectF(
-                    mData[6] - mCircleRadius - 50f,
-                    mData[7] + 50f + mCircleRadius / BALANCE_CONST_HEIGHT,
-                    mData[6] - mCircleRadius + 50f,
-                    mData[7] + 150f + mCircleRadius / BALANCE_CONST_HEIGHT
-                ), 180f, -90f
+                mData[6] - upWidth,
+                mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio * 2f,
+                mData[6] - upWidth + mCircleRadius * angleSmoothnessRatio * 2f,
+                mCircleRadius * upHeight,
+                180f,
+                -90f,
+                false
             )
             lineTo(
-                mData[6] - mCircleRadius - 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                mData[7] + 150f + mCircleRadius / BALANCE_CONST_HEIGHT
+                mData[2] + upWidth - mCircleRadius * angleSmoothnessRatio,
+                mData[3] + mCircleRadius * upHeight
             )
             arcTo(
-                RectF(
-                    mData[6] - mCircleRadius - 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                    mData[7] + 50f + mCircleRadius / BALANCE_CONST_HEIGHT,
-                    mData[6] - mCircleRadius + 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                    mData[7] + 150f + mCircleRadius / BALANCE_CONST_HEIGHT
-                ), 90f, -90f
+                mData[2] + upWidth - mCircleRadius * angleSmoothnessRatio * 2f,
+                mCircleRadius * upHeight - mCircleRadius * angleSmoothnessRatio * 2f,
+                mData[2] + upWidth,
+                mCircleRadius * upHeight,
+                90f,
+                -90f,
+                false
             )
-            lineTo(
-                mData[6] - mCircleRadius + 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                mData[7] + 100f
-            )
+            lineTo(mData[2] + upWidth, mData[3] + mCircleRadius * angleSmoothnessRatio * 2f)
             arcTo(
-                RectF(
-                    mData[6] - mCircleRadius - 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                    mData[7],
-                    mData[6] - mCircleRadius + 50f + mCircleRadius / BALANCE_CONST_WIDTH,
-                    mData[7] + 100f
-                ), 0f, -90f
+                mData[2] + upWidth - mCircleRadius * angleSmoothnessRatio * 2f,
+                mData[3],
+                mData[2] + upWidth,
+                mData[3] + mCircleRadius * angleSmoothnessRatio * 2f,
+                0f,
+                -90f,
+                false
             )
-            lineTo(mData[2], mData[3])
+            close()
         }, mPaint)
     }
 }
